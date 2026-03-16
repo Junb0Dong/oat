@@ -47,7 +47,7 @@ class RegisterEncoder(nn.Module):
         emb_dim: int,
         head_dim: int,
         depth: int,
-        pdropout: float,
+        pdropout: float,    #  encourage latent representation earlier tokens capture coarse
         # latent args
         latent_dim: int,
         num_registers: int,

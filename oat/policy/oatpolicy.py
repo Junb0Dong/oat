@@ -201,9 +201,10 @@ class OATPolicy(BasePolicy):
 
         # decode action tokens
         with torch.inference_mode():
-            action_pred = self.action_tokenizer.detokenize(
-                tokens=action_tokens,
-            )
+            with torch.autocast(device_type=action_tokens.device.type, enabled=False):
+                action_pred = self.action_tokenizer.detokenize(
+                    tokens=action_tokens,
+                )
 
         # receeding horizon
         action = action_pred[:,:self.n_action_steps]
@@ -218,7 +219,8 @@ class OATPolicy(BasePolicy):
     def forward(self, batch) -> torch.Tensor:
         # tokenize trajectory
         with torch.inference_mode():
-            action_tokens = self.action_tokenizer.tokenize(batch['action'])
+            with torch.autocast(device_type=batch['action'].device.type, enabled=False):
+                action_tokens = self.action_tokenizer.tokenize(batch['action'].float())
 
         B = batch['action'].shape[0]
         device = batch['action'].device

@@ -1,0 +1,56 @@
+# 任务名称
+TaskName: "oat-policy-train"
+# 任务描述
+Description: "oat policy training"
+# 入口命令
+Entrypoint: "sleep 10d"
+# 标签
+Tags: ["training", "policy"]
+
+# 镜像 URL 地址
+ImageUrl: "dexmalhub-cn-beijing.cr.volces.com/default/oat:0.0.2"
+# 队列 ID，为空时使用公共队列
+ResourceQueueID: "q-20250821163452-pwl4j"
+# 训练框架，支持 TensorFlowPS / PyTorchDDP / MPI / BytePS / Custom
+Framework: "Custom"
+# 实例配置，包含角色名称（RoleName）、角色数量（RoleReplicas）以及具体的实例规格（Flavor）
+TaskRoleSpecs:
+  - RoleName: worker
+    RoleReplicas: 1
+    Flavor: "ml.pni3ln.45xlarge"
+# 最长运行时间
+ActiveDeadlineSeconds: 864000
+# 实例保留时长
+DelayExitTimeSeconds: 3600
+# 可见范围，支持 Public / Queue / Private
+AccessType: "Public"
+Preemptible: false
+Priority: 4
+# 自动重试
+RetryOptions:
+    EnableRetry: false
+    MaxRetryTimes: 5
+    IntervalSeconds: 120
+    PolicySets:
+        - "Failed"
+# 任务诊断策略
+DiagOptions:
+  - Name: "EnvironmentalDiagnosis"
+    Enable: false
+  - Name: "PythonDetection"
+    Enable: true
+    PythonDetectionInterval: 3600
+  - Name: "LogDetection"
+    Enable: true
+    LogDetectionInterval: 1800
+# 挂载数据盘至训练容器中
+Storages:
+    - Type: "TosFuse"
+      MountPath: "/tos/dexmal-aa-junbo-data"
+      Bucket: "dexmal-aa-junbo-data"
+      Prefix: "/"
+    - Type: "Vepfs"
+      MountPath: "/mlp_vepfs/share"
+      VepfsId: "vepfs-cnbj391087bcabac"
+      SubPath: "share"
+      ReadOnly: false

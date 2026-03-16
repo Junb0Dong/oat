@@ -72,7 +72,7 @@ class OATTok(BaseTokenizer):
 
         # decode
         recons = self.decoder(latents)
-        loss = F.mse_loss(recons, nsamples)
+        loss = F.mse_loss(recons, nsamples) # loss就是重建loss，那么没有VQ-VAE的那么多loss吗？
 
         return loss
 

@@ -48,7 +48,7 @@ class SinglePassDecoder(nn.Module):
                 dim_feedforward=4 * emb_dim,
                 dropout=pdropout,
                 activation='gelu',
-                batch_first=True,
+                batch_first=False,
                 norm_first=True,
             ),
             num_layers=depth,
@@ -70,22 +70,28 @@ class SinglePassDecoder(nn.Module):
         # latents: (B, T', latent_dim)
         # return samples: (B, T, sample_dim) 
         x = self.sample_pos_emb(shape=[self.sample_horizon,]).expand(latents.shape[0], -1, -1)
-        x = einops.rearrange(x, "B D T -> B T D")
+        x = einops.rearrange(x, "B D T -> B T D").contiguous()
 
         latents = self.latent_proj(latents)
         latents = self.latent_pos_emb(latents)
         latents = self.nested_dropout(
             latents, 
             eval_keep_k=eval_keep_k
-        )
+        ).contiguous()
+
+        # Use explicit sequence-first contiguous tensors to avoid the
+        # internal batch_first transpose path on CUDA.
+        x = x.transpose(0, 1).contiguous()
+        latents = latents.transpose(0, 1).contiguous()
 
         if self.use_causal_decoder:
             mask = nn.Transformer.generate_square_subsequent_mask(
-                x.size(1), device=x.device
+                x.size(0), device=x.device
             )
             x = self.decoder(x, latents, tgt_mask=mask, tgt_is_causal=True)
         else:
             x = self.decoder(x, latents)
 
+        x = x.transpose(0, 1).contiguous()
         samples = self.head(x)  # (B, T, sample_dim)
         return samples

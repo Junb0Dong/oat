@@ -9,7 +9,7 @@ shape_meta: &shape_meta
 
 dataset:
   _target_: oat.dataset.zarr_dataset.ZarrDataset
-  zarr_path: data/libero/libero10_N${training.num_demo}.zarr
+  zarr_path: /root/workspace/oat_data/libero/libero/libero10_N${training.num_demo}.zarr
   obs_keys: []
   action_key: action
   n_obs_steps: 0
